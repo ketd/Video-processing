@@ -9,8 +9,7 @@ from .main import (
     concatenate_videos,
     trim_video,
     resize_video,
-    extract_audio_segment,
-    get_video_info
+    extract_frames
 )
 
 __all__ = [
@@ -18,8 +17,7 @@ __all__ = [
     "concatenate_videos",
     "trim_video",
     "resize_video",
-    "extract_audio_segment",
-    "get_video_info"
+    "extract_frames"
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
