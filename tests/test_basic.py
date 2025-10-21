@@ -1,5 +1,5 @@
 """
-基础功能测试
+基础功能测试（v3.0 架构）
 
 测试新架构下的视频处理函数
 """
@@ -21,81 +21,52 @@ from src.main import (
 
 
 class TestBasicFunctions:
-    """测试基础功能"""
+    """测试基础功能（v3.0 架构）"""
 
-    def test_video_to_audio_file_not_found(self):
-        """测试文件不存在的情况"""
-        result = video_to_audio(
-            input_files=["nonexistent.mp4"],
-            audio_format="mp3"
-        )
+    def test_video_to_audio_no_input(self):
+        """测试没有输入文件"""
+        # v3.0: 不传文件参数，函数自动扫描
+        # 由于没有创建输入文件，应该返回错误
+        result = video_to_audio(audio_format="mp3")
         assert result["success"] is False
-        assert result["error_code"] == "FILE_NOT_FOUND"
+        assert result["error_code"] == "NO_INPUT_FILE"
 
     def test_concatenate_videos_insufficient_files(self):
         """测试视频数量不足"""
-        result = concatenate_videos(
-            input_files=["single.mp4"]
-        )
+        # v3.0: 函数自动扫描，需要至少2个文件
+        result = concatenate_videos()
         assert result["success"] is False
-        assert result["error_code"] == "INSUFFICIENT_FILES"
+        assert result["error_code"] in ["INSUFFICIENT_FILES", "NO_INPUT_FILE"]
 
-    def test_trim_video_file_not_found(self):
-        """测试剪辑视频文件不存在"""
-        result = trim_video(
-            input_files=["nonexistent.mp4"],
-            start_time=0,
-            end_time=10
-        )
+    def test_trim_video_no_input(self):
+        """测试剪辑视频无输入"""
+        result = trim_video(start_time=0, end_time=10)
         assert result["success"] is False
-        assert result["error_code"] == "FILE_NOT_FOUND"
+        assert result["error_code"] == "NO_INPUT_FILE"
 
-    def test_resize_video_file_not_found(self):
-        """测试调整大小文件不存在"""
-        result = resize_video(
-            input_files=["nonexistent.mp4"],
-            width=640
-        )
+    def test_resize_video_no_input(self):
+        """测试调整大小无输入"""
+        result = resize_video(width=640)
         assert result["success"] is False
-        assert result["error_code"] == "FILE_NOT_FOUND"
+        assert result["error_code"] == "NO_INPUT_FILE"
 
     def test_resize_video_missing_parameters(self):
         """测试缺少必需参数"""
-        # 创建一个临时文件来绕过文件检查
-        import tempfile
-        temp_dir = tempfile.mkdtemp()
-        data_inputs = Path(temp_dir) / "data" / "inputs"
-        data_inputs.mkdir(parents=True, exist_ok=True)
-
-        test_file = data_inputs / "test.mp4"
-        test_file.write_text("dummy")
-
-        # 切换到临时目录
-        original_cwd = os.getcwd()
-        os.chdir(temp_dir)
-
-        try:
-            result = resize_video(
-                input_files=["test.mp4"]
-                # 不提供 width, height 或 scale
-            )
-            assert result["success"] is False
-            # 实际上会因为文件不是有效视频而返回 PROCESSING_ERROR
-            # 而不是 MISSING_PARAMETERS（因为在参数检查前先加载视频）
-            assert result["error_code"] in ["MISSING_PARAMETERS", "PROCESSING_ERROR"]
-        finally:
-            os.chdir(original_cwd)
-            import shutil
-            shutil.rmtree(temp_dir)
-
-    def test_extract_frames_file_not_found(self):
-        """测试提取帧文件不存在"""
-        result = extract_frames(
-            input_files=["nonexistent.mp4"],
-            times=[1.0, 2.0]
-        )
+        result = resize_video()
         assert result["success"] is False
-        assert result["error_code"] == "FILE_NOT_FOUND"
+        assert result["error_code"] == "MISSING_PARAMETERS"
+
+    def test_extract_frames_no_input(self):
+        """测试提取帧无输入"""
+        result = extract_frames(times=[1.0, 2.0])
+        assert result["success"] is False
+        assert result["error_code"] == "NO_INPUT_FILE"
+
+    def test_extract_frames_invalid_times(self):
+        """测试无效的时间参数"""
+        result = extract_frames(times=None)
+        assert result["success"] is False
+        assert result["error_code"] == "INVALID_TIMES"
 
 
 class TestPathConventions:
@@ -112,22 +83,71 @@ class TestPathConventions:
         assert str(DATA_OUTPUTS) == "data/outputs"
 
 
-class TestParameterTypes:
-    """测试参数类型"""
+class TestFunctionSignatures:
+    """测试函数签名（v3.0 架构）"""
 
-    def test_input_files_is_list(self):
-        """确保 input_files 参数是列表"""
-        # 这个测试只是确保函数签名正确
+    def test_video_to_audio_no_file_params(self):
+        """确保 video_to_audio 不接收文件参数"""
         import inspect
-
-        # 检查 video_to_audio
         sig = inspect.signature(video_to_audio)
-        assert 'input_files' in sig.parameters
+        
+        # v3.0: 应该只有业务参数
+        assert 'input_files' not in sig.parameters
+        assert 'audio_format' in sig.parameters
+        assert 'audio_bitrate' in sig.parameters
 
-        # 检查类型注解
-        from typing import get_type_hints
-        hints = get_type_hints(video_to_audio)
-        assert 'input_files' in hints
-        # 应该是 List[str]
-        assert 'List' in str(hints['input_files'])
+    def test_concatenate_videos_no_file_params(self):
+        """确保 concatenate_videos 不接收文件参数"""
+        import inspect
+        sig = inspect.signature(concatenate_videos)
+        
+        assert 'input_files' not in sig.parameters
+        assert 'output_format' in sig.parameters
+        assert 'method' in sig.parameters
 
+    def test_trim_video_no_file_params(self):
+        """确保 trim_video 不接收文件参数"""
+        import inspect
+        sig = inspect.signature(trim_video)
+        
+        assert 'input_files' not in sig.parameters
+        assert 'start_time' in sig.parameters
+        assert 'end_time' in sig.parameters
+
+    def test_resize_video_no_file_params(self):
+        """确保 resize_video 不接收文件参数"""
+        import inspect
+        sig = inspect.signature(resize_video)
+        
+        assert 'input_files' not in sig.parameters
+        assert 'width' in sig.parameters
+        assert 'height' in sig.parameters
+        assert 'scale' in sig.parameters
+
+    def test_extract_frames_no_file_params(self):
+        """确保 extract_frames 不接收文件参数"""
+        import inspect
+        sig = inspect.signature(extract_frames)
+        
+        assert 'input_files' not in sig.parameters
+        assert 'times' in sig.parameters
+        assert 'image_format' in sig.parameters
+
+
+class TestReturnValues:
+    """测试返回值（v3.0 架构）"""
+
+    def test_returns_no_file_paths(self):
+        """确保返回值不包含文件路径字段"""
+        # 测试无输入的情况
+        result = video_to_audio()
+        
+        # v3.0: 返回值不应包含文件路径
+        assert "output_file" not in result
+        assert "output_files" not in result
+        assert "input_file" not in result
+        assert "input_files" not in result
+        
+        # 应该包含业务字段
+        assert "success" in result
+        assert "error_code" in result  # 因为失败了
