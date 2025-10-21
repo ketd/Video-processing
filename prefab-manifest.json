@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "id": "video-processing-prefab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "name": "视频处理预制件",
   "description": "基于 MoviePy 的视频处理工具集，支持视频转音频、视频拼接、视频剪辑、调整大小等常见操作",
   "tags": [
