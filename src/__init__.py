@@ -1,19 +1,25 @@
 """
-预制件模块
+视频处理预制件
 
-这个模块暴露所有可被 AI 调用的函数。
+基于 MoviePy 的视频处理工具集
 """
 
 from .main import (
-    greet,
-    echo,
-    add_numbers,
+    video_to_audio,
+    concatenate_videos,
+    trim_video,
+    resize_video,
+    extract_audio_segment,
+    get_video_info
 )
 
 __all__ = [
-    "greet",
-    "echo",
-    "add_numbers",
+    "video_to_audio",
+    "concatenate_videos",
+    "trim_video",
+    "resize_video",
+    "extract_audio_segment",
+    "get_video_info"
 ]
 
 __version__ = "0.1.0"

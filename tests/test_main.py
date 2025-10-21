@@ -1,140 +1,316 @@
 """
 main.py 的单元测试
 
-测试所有预制件函数的功能
+测试所有视频处理函数的功能
 """
 
 import sys
 import os
+import pytest
+from unittest.mock import Mock, patch, MagicMock
 
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.main import greet, echo, add_numbers, fetch_weather
+from src.main import (
+    video_to_audio,
+    concatenate_videos,
+    trim_video,
+    resize_video,
+    extract_audio_segment,
+    get_video_info
+)
 
 
-class TestGreet:
-    """测试 greet 函数"""
+class TestVideoToAudio:
+    """测试 video_to_audio 函数"""
 
-    def test_default_greeting(self):
-        """测试默认问候"""
-        result = greet()
-        assert result["success"] is True
-        assert result["message"] == "Hello, World!"
-        assert result["name"] == "World"
-
-    def test_custom_name(self):
-        """测试自定义名字"""
-        result = greet(name="Alice")
-        assert result["success"] is True
-        assert result["message"] == "Hello, Alice!"
-        assert result["name"] == "Alice"
-
-    def test_empty_name(self):
-        """测试空名字"""
-        result = greet(name="")
+    def test_file_not_found(self):
+        """测试文件不存在的情况"""
+        result = video_to_audio("nonexistent.mp4")
         assert result["success"] is False
-        assert "error" in result
-        assert result["error_code"] == "INVALID_NAME"
+        assert result["error_code"] == "FILE_NOT_FOUND"
+        assert "不存在" in result["error"]
 
+    @patch('src.main.VideoFileClip')
+    def test_no_audio_track(self, mock_video_clip):
+        """测试视频无音频轨道的情况"""
+        # 创建临时文件
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            temp_path = f.name
 
-class TestEcho:
-    """测试 echo 函数"""
+        try:
+            # Mock VideoFileClip
+            mock_instance = Mock()
+            mock_instance.audio = None  # 模拟无音频轨道
+            mock_video_clip.return_value = mock_instance
 
-    def test_basic_echo(self):
-        """测试基本回显"""
-        result = echo(text="Hello")
-        assert result["success"] is True
-        assert result["original"] == "Hello"
-        assert result["echo"] == "Hello"
-        assert result["length"] == 5
+            result = video_to_audio(temp_path)
 
-    def test_long_text(self):
-        """测试长文本"""
-        text = "This is a longer text message for testing"
-        result = echo(text=text)
-        assert result["success"] is True
-        assert result["original"] == text
-        assert result["length"] == len(text)
+            assert result["success"] is False
+            assert result["error_code"] == "NO_AUDIO_TRACK"
+        finally:
+            # 清理临时文件
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
-    def test_empty_text(self):
-        """测试空文本"""
-        result = echo(text="")
-        assert result["success"] is False
-        assert "error" in result
-        assert result["error_code"] == "EMPTY_TEXT"
+    @patch('src.main.VideoFileClip')
+    def test_successful_conversion(self, mock_video_clip):
+        """测试成功转换"""
+        # 创建临时文件
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            temp_path = f.name
 
+        try:
+            # Mock VideoFileClip 和 audio
+            mock_audio = Mock()
+            mock_audio.write_audiofile = Mock()
 
-class TestAddNumbers:
-    """测试 add_numbers 函数"""
+            mock_instance = Mock()
+            mock_instance.audio = mock_audio
+            mock_instance.duration = 120.5
+            mock_instance.close = Mock()
 
-    def test_positive_integers(self):
-        """测试正整数"""
-        result = add_numbers(a=5, b=3)
-        assert result["success"] is True
-        assert result["a"] == 5
-        assert result["b"] == 3
-        assert result["sum"] == 8
+            mock_video_clip.return_value = mock_instance
 
-    def test_negative_numbers(self):
-        """测试负数"""
-        result = add_numbers(a=-5, b=3)
-        assert result["success"] is True
-        assert result["sum"] == -2
+            result = video_to_audio(temp_path, audio_format="mp3")
 
-    def test_float_numbers(self):
-        """测试浮点数"""
-        result = add_numbers(a=1.5, b=2.3)
-        assert result["success"] is True
-        assert abs(result["sum"] - 3.8) < 0.0001
-
-    def test_zero(self):
-        """测试零"""
-        result = add_numbers(a=0, b=0)
-        assert result["success"] is True
-        assert result["sum"] == 0
-
-
-class TestFetchWeather:
-    """测试 fetch_weather 函数（演示 secrets 的使用）"""
-
-    def test_with_api_key(self, monkeypatch):
-        """测试配置了 API Key 的情况"""
-        # 模拟环境变量
-        monkeypatch.setenv('WEATHER_API_KEY', 'test_api_key_12345')
-
-        result = fetch_weather(city="北京")
-        assert result["success"] is True
-        assert result["city"] == "北京"
-        assert "temperature" in result
-        assert "condition" in result
-        assert result["note"] == "这是演示数据，未调用真实 API"
-
-    def test_without_api_key(self, monkeypatch):
-        """测试未配置 API Key 的情况"""
-        # 确保环境变量不存在
-        monkeypatch.delenv('WEATHER_API_KEY', raising=False)
-
-        result = fetch_weather(city="上海")
-        assert result["success"] is False
-        assert "error" in result
-        assert result["error_code"] == "MISSING_API_KEY"
-
-    def test_invalid_city(self, monkeypatch):
-        """测试无效的城市名称"""
-        monkeypatch.setenv('WEATHER_API_KEY', 'test_api_key_12345')
-
-        result = fetch_weather(city="")
-        assert result["success"] is False
-        assert "error" in result
-        assert result["error_code"] == "INVALID_CITY"
-
-    def test_multiple_cities(self, monkeypatch):
-        """测试不同城市"""
-        monkeypatch.setenv('WEATHER_API_KEY', 'test_api_key_12345')
-
-        cities = ["北京", "上海", "广州", "深圳"]
-        for city in cities:
-            result = fetch_weather(city=city)
             assert result["success"] is True
-            assert result["city"] == city
+            assert "output_file" in result
+            assert result["format"] == "mp3"
+            assert result["duration"] == 120.5
+        finally:
+            # 清理临时文件
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            # 清理可能生成的输出文件
+            output_file = result.get("output_file")
+            if output_file and os.path.exists(output_file):
+                os.remove(output_file)
+
+
+class TestConcatenateVideos:
+    """测试 concatenate_videos 函数"""
+
+    def test_insufficient_videos(self):
+        """测试视频数量不足"""
+        result = concatenate_videos([])
+        assert result["success"] is False
+        assert result["error_code"] == "INSUFFICIENT_VIDEOS"
+
+        result = concatenate_videos(["single.mp4"])
+        assert result["success"] is False
+        assert result["error_code"] == "INSUFFICIENT_VIDEOS"
+
+    def test_file_not_found(self):
+        """测试文件不存在"""
+        result = concatenate_videos(["file1.mp4", "file2.mp4"])
+        assert result["success"] is False
+        assert result["error_code"] == "FILE_NOT_FOUND"
+
+
+class TestTrimVideo:
+    """测试 trim_video 函数"""
+
+    def test_file_not_found(self):
+        """测试文件不存在"""
+        result = trim_video("nonexistent.mp4", 0, 10)
+        assert result["success"] is False
+        assert result["error_code"] == "FILE_NOT_FOUND"
+
+    def test_invalid_start_time(self):
+        """测试无效的开始时间"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            result = trim_video(temp_path, -5, 10)
+            assert result["success"] is False
+            assert result["error_code"] == "INVALID_START_TIME"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    def test_invalid_time_range(self):
+        """测试无效的时间范围"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            result = trim_video(temp_path, 10, 5)
+            assert result["success"] is False
+            assert result["error_code"] == "INVALID_TIME_RANGE"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    @patch('src.main.VideoFileClip')
+    def test_time_out_of_range(self, mock_video_clip):
+        """测试时间超出视频长度"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            # Mock VideoFileClip
+            mock_instance = Mock()
+            mock_instance.duration = 100.0
+            mock_instance.close = Mock()
+            mock_video_clip.return_value = mock_instance
+
+            result = trim_video(temp_path, 0, 150)
+
+            assert result["success"] is False
+            assert result["error_code"] == "TIME_OUT_OF_RANGE"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+
+class TestResizeVideo:
+    """测试 resize_video 函数"""
+
+    def test_file_not_found(self):
+        """测试文件不存在"""
+        result = resize_video("nonexistent.mp4", width=1280)
+        assert result["success"] is False
+        assert result["error_code"] == "FILE_NOT_FOUND"
+
+    def test_missing_size_parameter(self):
+        """测试缺少尺寸参数"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            result = resize_video(temp_path)
+            assert result["success"] is False
+            assert result["error_code"] == "MISSING_SIZE_PARAMETER"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+
+class TestExtractAudioSegment:
+    """测试 extract_audio_segment 函数"""
+
+    def test_file_not_found(self):
+        """测试文件不存在"""
+        result = extract_audio_segment("nonexistent.mp3", 0, 10)
+        assert result["success"] is False
+        assert result["error_code"] == "FILE_NOT_FOUND"
+
+    def test_invalid_start_time(self):
+        """测试无效的开始时间"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            result = extract_audio_segment(temp_path, -5, 10)
+            assert result["success"] is False
+            assert result["error_code"] == "INVALID_START_TIME"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    def test_invalid_time_range(self):
+        """测试无效的时间范围"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            result = extract_audio_segment(temp_path, 10, 5)
+            assert result["success"] is False
+            assert result["error_code"] == "INVALID_TIME_RANGE"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+
+class TestGetVideoInfo:
+    """测试 get_video_info 函数"""
+
+    def test_file_not_found(self):
+        """测试文件不存在"""
+        result = get_video_info("nonexistent.mp4")
+        assert result["success"] is False
+        assert result["error_code"] == "FILE_NOT_FOUND"
+
+    @patch('src.main.VideoFileClip')
+    def test_successful_info_retrieval(self, mock_video_clip):
+        """测试成功获取视频信息"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            # 写入一些数据以便文件有大小
+            f.write(b"dummy video data")
+            temp_path = f.name
+
+        try:
+            # Mock VideoFileClip
+            mock_instance = Mock()
+            mock_instance.duration = 120.5
+            mock_instance.fps = 30
+            mock_instance.w = 1920
+            mock_instance.h = 1080
+            mock_instance.audio = Mock()  # 有音频
+            mock_instance.close = Mock()
+            mock_video_clip.return_value = mock_instance
+
+            result = get_video_info(temp_path)
+
+            assert result["success"] is True
+            assert "info" in result
+            assert result["info"]["duration"] == 120.5
+            assert result["info"]["fps"] == 30
+            assert result["info"]["width"] == 1920
+            assert result["info"]["height"] == 1080
+            assert result["info"]["has_audio"] is True
+            assert "file_size_bytes" in result["info"]
+            assert "file_size_mb" in result["info"]
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+
+class TestParameterValidation:
+    """测试参数验证"""
+
+    def test_video_to_audio_formats(self):
+        """测试不同的音频格式参数"""
+        result = video_to_audio("nonexistent.mp4", audio_format="wav")
+        assert result["success"] is False  # 因为文件不存在，但参数有效
+
+        result = video_to_audio("nonexistent.mp4", audio_format="aac")
+        assert result["success"] is False
+
+    def test_resize_with_different_params(self):
+        """测试不同的调整大小参数"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            # 测试只指定宽度
+            result = resize_video(temp_path, width=1280)
+            assert result["error_code"] != "MISSING_SIZE_PARAMETER"
+
+            # 测试只指定高度
+            result = resize_video(temp_path, height=720)
+            assert result["error_code"] != "MISSING_SIZE_PARAMETER"
+
+            # 测试只指定缩放比例
+            result = resize_video(temp_path, scale=0.5)
+            assert result["error_code"] != "MISSING_SIZE_PARAMETER"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
