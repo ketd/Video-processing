@@ -66,14 +66,14 @@ class TestBasicFunctions:
         temp_dir = tempfile.mkdtemp()
         data_inputs = Path(temp_dir) / "data" / "inputs"
         data_inputs.mkdir(parents=True, exist_ok=True)
-        
+
         test_file = data_inputs / "test.mp4"
         test_file.write_text("dummy")
-        
+
         # 切换到临时目录
         original_cwd = os.getcwd()
         os.chdir(temp_dir)
-        
+
         try:
             result = resize_video(
                 input_files=["test.mp4"]
@@ -119,11 +119,11 @@ class TestParameterTypes:
         """确保 input_files 参数是列表"""
         # 这个测试只是确保函数签名正确
         import inspect
-        
+
         # 检查 video_to_audio
         sig = inspect.signature(video_to_audio)
         assert 'input_files' in sig.parameters
-        
+
         # 检查类型注解
         from typing import get_type_hints
         hints = get_type_hints(video_to_audio)

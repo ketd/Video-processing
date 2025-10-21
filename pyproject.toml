@@ -1,6 +1,6 @@
 [project]
 name = "video-processing-prefab"
-version = "0.2.0"
+version = "0.3.0"
 description = "基于 MoviePy 的视频处理预制件，支持视频转音频、视频拼接、视频剪辑、调整大小等常见操作"
 readme = "README.md"
 requires-python = ">=3.11"

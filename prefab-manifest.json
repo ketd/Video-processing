@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
   "id": "video-processing-prefab",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "name": "视频处理预制件",
-  "description": "基于 MoviePy 的视频处理工具集，支持视频转音频、视频拼接、视频剪辑、调整大小等常见操作",
+  "description": "基于 MoviePy 的视频处理工具集（v3.0 架构：文件独立化）",
   "tags": [
     "video",
     "audio",
@@ -17,19 +17,27 @@
   "functions": [
     {
       "name": "video_to_audio",
-      "description": "将视频文件转换为音频文件，支持多种音频格式",
-      "parameters": [
-        {
-          "name": "input_files",
+      "description": "将视频文件转换为音频文件，支持多种音频格式（v3.0 架构）",
+      "files": {
+        "input": {
           "type": "array",
           "items": {
             "type": "InputFile"
           },
-          "minItems": 1,
-          "maxItems": 1,
           "description": "输入视频文件（只需要1个）",
-          "required": true
+          "required": true,
+          "minItems": 1,
+          "maxItems": 1
         },
+        "output": {
+          "type": "array",
+          "items": {
+            "type": "OutputFile"
+          },
+          "description": "输出文件"
+        }
+      },
+      "parameters": [
         {
           "name": "audio_format",
           "type": "string",
@@ -47,14 +55,11 @@
       ],
       "returns": {
         "type": "object",
+        "description": "（不包含文件路径）",
         "properties": {
           "success": {
             "type": "boolean",
             "description": "是否成功"
-          },
-          "output_file": {
-            "type": "OutputFile",
-            "description": "输出音频文件路径（data/outputs/audio.{format}）"
           },
           "format": {
             "type": "string",
@@ -77,18 +82,27 @@
     },
     {
       "name": "concatenate_videos",
-      "description": "拼接多个视频文件",
-      "parameters": [
-        {
-          "name": "input_files",
+      "description": "拼接多个视频文件（v3.0 架构）",
+      "files": {
+        "input": {
           "type": "array",
           "items": {
             "type": "InputFile"
           },
-          "minItems": 2,
           "description": "输入视频文件列表（至少2个）",
-          "required": true
+          "required": true,
+          "minItems": 2,
+          "maxItems": 1
         },
+        "output": {
+          "type": "array",
+          "items": {
+            "type": "OutputFile"
+          },
+          "description": "输出文件"
+        }
+      },
+      "parameters": [
         {
           "name": "output_format",
           "type": "string",
@@ -102,19 +116,19 @@
           "description": "拼接方法（compose 或 chain），默认 compose",
           "required": false,
           "default": "compose",
-          "enum": ["compose", "chain"]
+          "enum": [
+            "compose",
+            "chain"
+          ]
         }
       ],
       "returns": {
         "type": "object",
+        "description": "（不包含文件路径）",
         "properties": {
           "success": {
             "type": "boolean",
             "description": "是否成功"
-          },
-          "output_file": {
-            "type": "OutputFile",
-            "description": "输出视频文件路径"
           },
           "input_count": {
             "type": "integer",
@@ -137,19 +151,27 @@
     },
     {
       "name": "trim_video",
-      "description": "剪辑视频片段",
-      "parameters": [
-        {
-          "name": "input_files",
+      "description": "剪辑视频片段（v3.0 架构）",
+      "files": {
+        "input": {
           "type": "array",
           "items": {
             "type": "InputFile"
           },
-          "minItems": 1,
-          "maxItems": 1,
           "description": "输入视频文件（只需要1个）",
-          "required": true
+          "required": true,
+          "minItems": 1,
+          "maxItems": 1
         },
+        "output": {
+          "type": "array",
+          "items": {
+            "type": "OutputFile"
+          },
+          "description": "输出文件"
+        }
+      },
+      "parameters": [
         {
           "name": "start_time",
           "type": "number",
@@ -172,14 +194,11 @@
       ],
       "returns": {
         "type": "object",
+        "description": "（不包含文件路径）",
         "properties": {
           "success": {
             "type": "boolean",
             "description": "是否成功"
-          },
-          "output_file": {
-            "type": "OutputFile",
-            "description": "输出视频文件路径"
           },
           "start_time": {
             "type": "number",
@@ -206,19 +225,27 @@
     },
     {
       "name": "resize_video",
-      "description": "调整视频尺寸",
-      "parameters": [
-        {
-          "name": "input_files",
+      "description": "调整视频尺寸（v3.0 架构）",
+      "files": {
+        "input": {
           "type": "array",
           "items": {
             "type": "InputFile"
           },
-          "minItems": 1,
-          "maxItems": 1,
           "description": "输入视频文件（只需要1个）",
-          "required": true
+          "required": true,
+          "minItems": 1,
+          "maxItems": 1
         },
+        "output": {
+          "type": "array",
+          "items": {
+            "type": "OutputFile"
+          },
+          "description": "输出文件"
+        }
+      },
+      "parameters": [
         {
           "name": "width",
           "type": "integer",
@@ -247,14 +274,11 @@
       ],
       "returns": {
         "type": "object",
+        "description": "（不包含文件路径）",
         "properties": {
           "success": {
             "type": "boolean",
             "description": "是否成功"
-          },
-          "output_file": {
-            "type": "OutputFile",
-            "description": "输出视频文件路径"
           },
           "original_size": {
             "type": "array",
@@ -283,19 +307,27 @@
     },
     {
       "name": "extract_frames",
-      "description": "从视频提取帧",
-      "parameters": [
-        {
-          "name": "input_files",
+      "description": "从视频提取帧（v3.0 架构）",
+      "files": {
+        "input": {
           "type": "array",
           "items": {
             "type": "InputFile"
           },
-          "minItems": 1,
-          "maxItems": 1,
           "description": "输入视频文件（只需要1个）",
-          "required": true
+          "required": true,
+          "minItems": 1,
+          "maxItems": 1
         },
+        "output": {
+          "type": "array",
+          "items": {
+            "type": "OutputFile"
+          },
+          "description": "输出文件"
+        }
+      },
+      "parameters": [
         {
           "name": "times",
           "type": "array",
@@ -315,6 +347,7 @@
       ],
       "returns": {
         "type": "object",
+        "description": "（不包含文件路径）",
         "properties": {
           "success": {
             "type": "boolean",
@@ -344,4 +377,3 @@
     }
   ]
 }
-
