@@ -53,7 +53,7 @@
             "description": "是否成功"
           },
           "output_file": {
-            "type": "string",
+            "type": "OutputFile",
             "description": "输出音频文件路径（data/outputs/audio.{format}）"
           },
           "format": {
@@ -113,7 +113,7 @@
             "description": "是否成功"
           },
           "output_file": {
-            "type": "string",
+            "type": "OutputFile",
             "description": "输出视频文件路径"
           },
           "input_count": {
@@ -178,7 +178,7 @@
             "description": "是否成功"
           },
           "output_file": {
-            "type": "string",
+            "type": "OutputFile",
             "description": "输出视频文件路径"
           },
           "start_time": {
@@ -253,7 +253,7 @@
             "description": "是否成功"
           },
           "output_file": {
-            "type": "string",
+            "type": "OutputFile",
             "description": "输出视频文件路径"
           },
           "original_size": {
