@@ -316,14 +316,14 @@ def resize_video(
 
 def extract_frames(
     times: list,
-    image_format: str = "png"
+    output_format: str = "jpg"
 ) -> dict:
     """
     从视频中提取指定时间点的帧（v3.0 架构）
 
     Args:
         times: 要提取的时间点列表（秒）
-        image_format: 图片格式
+        output_format: 图片格式
 
     Returns:
         提取结果（不包含文件路径）
@@ -358,7 +358,7 @@ def extract_frames(
                 continue
 
             frame = video.get_frame(t)
-            output_path = DATA_OUTPUTS / f"frame_{i+1:03d}.{image_format}"
+            output_path = DATA_OUTPUTS / f"frame_{i+1:03d}.{output_format}"
 
             img = ImageClip(frame)
             img.save_frame(str(output_path))
@@ -371,7 +371,7 @@ def extract_frames(
             "success": True,
             "requested_count": len(times),
             "extracted_count": extracted_count,
-            "format": image_format
+            "format": output_format
         }
 
     except Exception as e:

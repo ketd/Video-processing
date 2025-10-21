@@ -347,22 +347,23 @@
       ],
       "returns": {
         "type": "object",
-        "description": "（不包含文件路径）",
+        "description": "提取结果（不包含文件路径）",
         "properties": {
           "success": {
             "type": "boolean",
             "description": "是否成功"
           },
-          "frame_count": {
+          "requested_count": {
             "type": "integer",
-            "description": "提取的帧数"
+            "description": "请求提取的帧数"
           },
-          "frames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "帧文件路径列表"
+          "extracted_count": {
+            "type": "integer",
+            "description": "实际提取的帧数"
+          },
+          "format": {
+            "type": "string",
+            "description": "图片格式"
           },
           "error": {
             "type": "string",

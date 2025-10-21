@@ -90,7 +90,7 @@ class TestFunctionSignatures:
         """确保 video_to_audio 不接收文件参数"""
         import inspect
         sig = inspect.signature(video_to_audio)
-        
+
         # v3.0: 应该只有业务参数
         assert 'input_files' not in sig.parameters
         assert 'audio_format' in sig.parameters
@@ -100,7 +100,7 @@ class TestFunctionSignatures:
         """确保 concatenate_videos 不接收文件参数"""
         import inspect
         sig = inspect.signature(concatenate_videos)
-        
+
         assert 'input_files' not in sig.parameters
         assert 'output_format' in sig.parameters
         assert 'method' in sig.parameters
@@ -109,7 +109,7 @@ class TestFunctionSignatures:
         """确保 trim_video 不接收文件参数"""
         import inspect
         sig = inspect.signature(trim_video)
-        
+
         assert 'input_files' not in sig.parameters
         assert 'start_time' in sig.parameters
         assert 'end_time' in sig.parameters
@@ -118,7 +118,7 @@ class TestFunctionSignatures:
         """确保 resize_video 不接收文件参数"""
         import inspect
         sig = inspect.signature(resize_video)
-        
+
         assert 'input_files' not in sig.parameters
         assert 'width' in sig.parameters
         assert 'height' in sig.parameters
@@ -128,10 +128,10 @@ class TestFunctionSignatures:
         """确保 extract_frames 不接收文件参数"""
         import inspect
         sig = inspect.signature(extract_frames)
-        
+
         assert 'input_files' not in sig.parameters
         assert 'times' in sig.parameters
-        assert 'image_format' in sig.parameters
+        assert 'output_format' in sig.parameters
 
 
 class TestReturnValues:
@@ -141,13 +141,13 @@ class TestReturnValues:
         """确保返回值不包含文件路径字段"""
         # 测试无输入的情况
         result = video_to_audio()
-        
+
         # v3.0: 返回值不应包含文件路径
         assert "output_file" not in result
         assert "output_files" not in result
         assert "input_file" not in result
         assert "input_files" not in result
-        
+
         # 应该包含业务字段
         assert "success" in result
         assert "error_code" in result  # 因为失败了
