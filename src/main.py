@@ -16,7 +16,7 @@
 
 from pathlib import Path
 from typing import List, Optional
-from moviepy import VideoFileClip, AudioFileClip, concatenate_videoclips
+from moviepy import VideoFileClip, concatenate_videoclips
 
 
 # 固定路径
