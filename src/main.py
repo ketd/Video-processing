@@ -366,7 +366,7 @@ def resize_video(
             resized_clip = video.resized(scale)
         elif width is not None and height is not None:
             # 同时指定宽度和高度
-            resized_clip = video.resized(newsize=(width, height))
+            resized_clip = video.resized(new_size=(width, height))
         elif width is not None:
             # 只指定宽度，保持宽高比
             resized_clip = video.resized(width=width)
