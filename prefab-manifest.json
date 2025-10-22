@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "id": "video-processing-prefab",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "name": "视频处理预制件",
   "description": "基于 MoviePy 的视频处理工具集（v3.0 架构：文件独立化）",
   "author": "ketd",

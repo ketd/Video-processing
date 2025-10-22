@@ -67,7 +67,7 @@ def video_to_audio(
             str(output_path),
             bitrate=audio_bitrate,
             codec=codec,
-            logger="bar"
+            logger=None  # 避免在容器环境中的 broken pipe 问题
         )
 
         video.close()
@@ -141,7 +141,7 @@ def concatenate_videos(
             str(output_path),
             codec="libx264",
             audio_codec="aac",
-            logger="bar"
+            logger=None  # 避免在容器环境中的 broken pipe 问题
         )
 
         # 关闭所有
@@ -193,8 +193,15 @@ def trim_video(
         video_path = input_files[0]
         video = VideoFileClip(str(video_path))
 
+        # 保存原始时长
+        original_duration = video.duration
+
         # 剪辑
-        trimmed = video.subclipped(start_time, end_time)
+        trimmed = video.subclip(start_time, end_time)
+
+        # 保存剪辑后的时长
+        trimmed_duration = trimmed.duration
+        actual_end_time = end_time or original_duration
 
         # 输出
         DATA_OUTPUTS.mkdir(parents=True, exist_ok=True)
@@ -204,18 +211,17 @@ def trim_video(
             str(output_path),
             codec="libx264",
             audio_codec="aac",
-            logger="bar"
+            logger=None  # 避免在容器环境中的 broken pipe 问题
         )
 
-        duration = trimmed.duration
         video.close()
         trimmed.close()
 
         return {
             "success": True,
             "start_time": start_time,
-            "end_time": end_time or video.duration,
-            "duration": duration
+            "end_time": actual_end_time,
+            "duration": trimmed_duration
         }
 
     except Exception as e:
@@ -292,7 +298,7 @@ def resize_video(
             str(output_path),
             codec="libx264",
             audio_codec="aac",
-            logger="bar"
+            logger=None  # 避免在容器环境中的 broken pipe 问题
         )
 
         video.close()
