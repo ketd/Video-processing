@@ -12,7 +12,8 @@ from typing import Optional
 from moviepy import VideoFileClip, concatenate_videoclips, ImageClip
 
 # 固定路径约定
-DATA_INPUTS = Path("data/inputs")
+# v3.0: 文件组按 manifest 中的 key 组织（这里是 "input"）
+DATA_INPUTS = Path("data/inputs/input")
 DATA_OUTPUTS = Path("data/outputs")
 
 
@@ -32,7 +33,7 @@ def video_to_audio(
     """
     try:
         # 扫描输入目录
-        input_files = list((DATA_INPUTS / "input").glob("*"))
+        input_files = list(DATA_INPUTS.glob("*"))
         if not input_files:
             return {
                 "success": False,
@@ -102,7 +103,7 @@ def concatenate_videos(
     """
     try:
         # 扫描输入目录
-        input_files = list((DATA_INPUTS / "input").glob("*"))
+        input_files = list(DATA_INPUTS.glob("*"))
         if len(input_files) < 2:
             return {
                 "success": False,
@@ -182,7 +183,7 @@ def trim_video(
     """
     try:
         # 扫描输入
-        input_files = list((DATA_INPUTS / "input").glob("*"))
+        input_files = list(DATA_INPUTS.glob("*"))
         if not input_files:
             return {
                 "success": False,
@@ -259,7 +260,7 @@ def resize_video(
             }
 
         # 扫描输入
-        input_files = list((DATA_INPUTS / "input").glob("*"))
+        input_files = list(DATA_INPUTS.glob("*"))
         if not input_files:
             return {
                 "success": False,
@@ -343,7 +344,7 @@ def extract_frames(
             }
 
         # 扫描输入
-        input_files = list((DATA_INPUTS / "input").glob("*"))
+        input_files = list(DATA_INPUTS.glob("*"))
         if not input_files:
             return {
                 "success": False,
